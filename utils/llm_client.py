@@ -114,8 +114,11 @@ class LLMClient:
                 return response.json().get('response', '').strip()
             else:
                 return "Error: Unable to connect to Ollama. Make sure Ollama is running on localhost:11434"
-        except requests.exceptions.ConnectionError:
-            return "Error: Cannot connect to Ollama. Please ensure Ollama is installed and running."
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            # Fallback to OpenAI if Ollama is not available
+            import streamlit as st
+            st.warning("⚠️ Ollama not available. Switching to OpenAI API...")
+            return self._openai_response(prompt, system_message, temperature, max_tokens)
         except Exception as e:
             return f"Error generating response: {str(e)}"
 
