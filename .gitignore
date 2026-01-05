@@ -1,3 +1,14 @@
+# Markdown files (except README)
+00-START-HERE.md
+ARCHITECTURE.md
+DELIVERABLES.md
+DEPLOYMENT.md
+PROJECT_SUMMARY.md
+QUICKSTART.md
+SETUP_COMPLETE.md
+SUBMISSION_GUIDE.md
+TESTING.md
+
 # Environment variables
 .env
 .env.local
