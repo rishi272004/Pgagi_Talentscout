@@ -4,6 +4,7 @@ Contains all system prompts and dynamic prompt generation
 """
 
 from typing import Dict, List
+import re
 
 
 class PromptTemplates:
@@ -74,18 +75,28 @@ You can list them separated by commas (e.g., "Python, Django, PostgreSQL, Docker
         
         tech_list = ", ".join(tech_stack[:5])  # Limit to first 5 for clarity
         
-        return f"""Based on the candidate's technical stack: {tech_list}
-And their experience level: {years_exp} years (difficulty: {difficulty})
+        return f"""You are a technical interviewer. Generate exactly 5 technical interview questions for a candidate with the following profile:
+- Technical Stack: {tech_list}
+- Experience Level: {years_exp} years ({difficulty} level)
 
-Generate exactly 3-5 technical questions that:
-1. Are appropriate for their experience level
-2. Test practical knowledge and problem-solving skills
-3. Are clear and concise
-4. Can be answered verbally
-5. Cover different technologies from their stack when possible
+IMPORTANT: Format your response EXACTLY like this, with ONLY the questions and nothing else:
 
-Format each question on a new line with a number (1., 2., etc.)
-Include a brief explanation of what you're testing with each question."""
+1. [FIRST FULL QUESTION HERE - Make it clear and detailed]
+
+2. [SECOND FULL QUESTION HERE - Make it clear and detailed]
+
+3. [THIRD FULL QUESTION HERE - Make it clear and detailed]
+
+4. [FOURTH FULL QUESTION HERE - Make it clear and detailed]
+
+5. [FIFTH FULL QUESTION HERE - Make it clear and detailed]
+
+Rules:
+- Each question MUST start with a number (1., 2., 3., etc.) 
+- Questions should be appropriate for {difficulty} level
+- Questions should test practical knowledge
+- No extra text, explanations, or formatting - just the numbered questions
+- Keep questions concise but complete (1-3 sentences each)"""
 
     @staticmethod
     def create_response_evaluation_prompt(question: str, answer: str, tech: str, years_exp: int) -> str:
@@ -101,19 +112,17 @@ Include a brief explanation of what you're testing with each question."""
         Returns:
             Evaluation prompt
         """
-        return f"""Evaluate this candidate's technical response:
+        return f"""Evaluate this technical response in BULLET format only.
 
-Technology: {tech}
-Experience: {years_exp} years
-Question: {question}
-Answer: {answer}
+Q: {question}
+A: {answer}
 
-Provide:
-1. A brief assessment (1-2 sentences) of their understanding
-2. Whether the answer demonstrates the expected level for their experience
-3. One constructive suggestion for improvement (if applicable)
+Respond ONLY with these 3 bullets, nothing else:
+• Assessment: [1-2 sentences on their understanding]
+• Experience Match: [Is this appropriate for {years_exp} years experience?]
+• Suggestion: [One improvement tip]
 
-Be encouraging and professional in your feedback."""
+DO NOT add any other text, conclusions, or messages."""
 
     @staticmethod
     def create_conclusion_prompt(candidate_data: Dict, transcript: List[str]) -> str:
@@ -158,8 +167,10 @@ class ConversationFlow:
     @staticmethod
     def should_exit(user_input: str) -> bool:
         """Check if user input contains exit keywords"""
-        user_input_lower = user_input.lower().strip()
+        # Normalize input by removing punctuation and extra whitespace
+        user_input_lower = re.sub(r"[^\w\s]", "", user_input.lower()).strip()
+        # Trigger exit only on exact matches (or exact phrase matches like 'no more')
         for keyword in ConversationFlow.EXIT_KEYWORDS:
-            if keyword in user_input_lower:
+            if user_input_lower == keyword:
                 return True
         return False
