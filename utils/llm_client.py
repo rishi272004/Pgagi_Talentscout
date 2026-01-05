@@ -21,7 +21,12 @@ class LLMClient:
         Args:
             provider: LLM provider type ('openai', 'ollama', or None for default)
         """
-        self.provider = provider or os.getenv('LLM_PROVIDER', 'ollama')
+        # Get provider from parameter, environment variable, or default to 'openai'
+        self.provider = provider or os.getenv('LLM_PROVIDER', 'openai').lower()
+        
+        # Log provider being used (for debugging)
+        # print(f"[LLM] Using provider: {self.provider}")
+        
         self.model = self._get_model()
         self.client = self._initialize_client()
 
@@ -107,20 +112,22 @@ class LLMClient:
                     'num_predict': max_tokens,
                     'stream': False
                 },
-                timeout=60
+                timeout=30
             )
             
             if response.status_code == 200:
                 return response.json().get('response', '').strip()
             else:
-                return "Error: Unable to connect to Ollama. Make sure Ollama is running on localhost:11434"
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                raise ConnectionError("Unable to connect to Ollama")
+        except (requests.exceptions.ConnectionError, ConnectionError):
             # Fallback to OpenAI if Ollama is not available
-            import streamlit as st
-            st.warning("⚠️ Ollama not available. Switching to OpenAI API...")
+            print("[LLM] Ollama not available. Attempting to use OpenAI as fallback...")
+            self.provider = 'openai'
+            self.client = self._initialize_client()
             return self._openai_response(prompt, system_message, temperature, max_tokens)
         except Exception as e:
-            return f"Error generating response: {str(e)}"
+            print(f"[LLM] Error with Ollama: {str(e)}")
+            return f"Error: Cannot connect to Ollama. Please ensure Ollama is running on localhost:11434. Fallback to OpenAI."
 
     def _fallback_response(self, prompt: str) -> str:
         """Fallback response when LLM provider is unavailable"""
