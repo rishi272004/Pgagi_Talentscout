@@ -293,9 +293,9 @@ def print_system_info():
 def main():
     """Run all tests"""
     print("\n")
-    print("╔" + "="*58 + "╗")
-    print("║" + " "*15 + "TalentScout Demo & System Test" + " "*12 + "║")
-    print("╚" + "="*58 + "╝")
+    print("+" + "="*58 + "+")
+    print("|" + " "*15 + "TalentScout Demo & System Test" + " "*12 + "|")
+    print("+" + "="*58 + "+")
     
     # Print system info
     print_system_info()
