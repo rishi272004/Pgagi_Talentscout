@@ -51,6 +51,7 @@ wheels/
 Thumbs.db
 
 # Streamlit
+.streamlit/secrets.toml
 .streamlit/
 *.streamlit.run
 
